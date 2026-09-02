@@ -278,14 +278,14 @@ Estrutura obrigatória:
 ## Prioridades de revisão (lista numerada: matéria, assunto e o motivo)
 ## Como estudar cada prioridade
 ## O que treinar antes do próximo simulado
-Seja específico e curto: no máximo 350 palavras. Use listas e **negrito** nos assuntos.`
+Seja específico e curto: no máximo 350 palavras. Use listas e **negrito** nos assuntos.${linkRule}`
         : `Você é um mentor de estudos. Com base no desempenho recente do aluno, escreva um plano de revisão em português do Brasil, em markdown simples.
 Estrutura obrigatória:
 ## Diagnóstico
 ## Prioridades da semana (lista numerada com matéria, assunto e o motivo)
 ## Como estudar cada prioridade
 ## Hábitos para corrigir (baseado nos tipos de erro)
-Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos assuntos.`,
+Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos assuntos.${linkRule}`,
       [
         {
           type: "text",
@@ -293,9 +293,11 @@ Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos 
             simulados: exams,
             questoes_erradas: wrong ?? [],
             revisoes: reviews ?? [],
+            materias_do_fichario: subjectList,
           }),
         },
       ],
+
     );
 
     const { data: saved, error } = await supabase
