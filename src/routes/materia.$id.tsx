@@ -40,6 +40,7 @@ import {
   scopeIds,
 } from "@/lib/study";
 import { lessonById, lessonLabel, lessonsForSubject } from "@/data/subject-map";
+import { backfillExamSubjects } from "@/lib/exam-link";
 import type { Lesson } from "@/data/types";
 import { fetchWatchedLessons, setLessonWatched } from "@/lib/lessons";
 
@@ -65,7 +66,7 @@ export const Route = createFileRoute("/materia/$id")({
   ),
 });
 
-type Tab = "materiais" | "aulas" | "flashcards" | "quiz";
+type Tab = "materiais" | "aulas" | "flashcards" | "quiz" | "erros";
 
 function MateriaPage() {
   const { id } = Route.useParams();
@@ -92,6 +93,34 @@ function MateriaPage() {
     queryKey: ["questions", "all"],
     queryFn: () => fetchQuestions(),
   });
+
+  // Liga simulados antigos às matérias antes de listar os erros desta ficha.
+  useQuery({
+    queryKey: ["exam-backfill", subjects.length],
+    queryFn: () => backfillExamSubjects(subjects),
+    enabled: subjects.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: examErrors = [] } = useQuery({
+    queryKey: ["exam-errors", ids.join(",")],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("exam_questions")
+        .select(
+          "id, number, subject, topic, statement, correct_answer, user_answer, created_at, exams(title, exam_date), error_reviews(why_wrong, correct_reasoning, error_type, concept)",
+        )
+        .in("subject_id", ids)
+        .eq("is_correct", false)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+
 
   const materials = allMaterials.filter((m) => ids.includes(m.subject_id));
   const cards = allCards.filter((c) => ids.includes(c.subject_id));
@@ -284,6 +313,7 @@ function MateriaPage() {
 
               ["flashcards", "Flashcards"],
               ["quiz", "Quiz"],
+              ["erros", "Erros"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -655,7 +685,71 @@ function MateriaPage() {
           </div>
         </div>
       )}
+
+      {tab === "erros" && (
+        <section className="mt-4 rounded-xl border border-line bg-card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
+              Erros de simulado nesta matéria
+            </p>
+            <Link
+              to="/simulados"
+              className="font-mono text-[11px] uppercase tracking-[0.16em] text-sun-deep hover:underline"
+            >
+              Ver simulados →
+            </Link>
+          </div>
+
+          {examErrors.length === 0 ? (
+            <p className="mt-4 text-sm text-ink-soft">
+              Nenhum erro registrado aqui ainda. Corrija um simulado para as questões erradas
+              aparecerem nesta frente.
+            </p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {examErrors.map((q) => {
+                const review = q.error_reviews;
+                return (
+                  <li key={q.id} className="rounded-lg border border-line bg-paper p-4">
+                    <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
+                      <span>Q{q.number}</span>
+                      {q.exams?.title && <span>· {q.exams.title}</span>}
+                      {q.topic && <span>· {q.topic}</span>}
+                      {review?.error_type && (
+                        <span className="rounded-full bg-sun/15 px-2 py-0.5 text-sun-deep">
+                          {review.error_type}
+                        </span>
+                      )}
+                    </div>
+                    {q.statement && (
+                      <p className="mt-2 line-clamp-3 text-sm text-ink">{q.statement}</p>
+                    )}
+                    <p className="mt-2 font-mono text-[11px] text-ink-soft">
+                      Sua resposta: {q.user_answer ?? "—"} · Gabarito: {q.correct_answer ?? "—"}
+                    </p>
+                    {review?.why_wrong && (
+                      <p className="mt-2 text-sm text-ink-soft">
+                        <span className="font-semibold text-ink">Onde errei: </span>
+                        {review.why_wrong}
+                      </p>
+                    )}
+                    {review?.correct_reasoning && (
+                      <p className="mt-1 text-sm text-ink-soft">{review.correct_reasoning}</p>
+                    )}
+                    {review?.concept && (
+                      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-sun-deep">
+                        Conceito: {review.concept}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
     </>
+
   );
 }
 

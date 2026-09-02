@@ -8,6 +8,8 @@ import { AppShell } from "@/components/AppShell";
 import { StudyPlanContent } from "@/components/StudyPlan";
 import { supabase } from "@/integrations/supabase/client";
 import { generateStudyPlan } from "@/lib/exams.functions";
+import { backfillExamSubjects } from "@/lib/exam-link";
+import { fetchSubjects } from "@/lib/study";
 
 export const Route = createFileRoute("/revisoes")({
   head: () => ({
@@ -36,6 +38,17 @@ export const Route = createFileRoute("/revisoes")({
 function Revisoes() {
   const queryClient = useQueryClient();
   const makePlan = useServerFn(generateStudyPlan);
+
+  const { data: subjects = [] } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
+
+  // Liga as questões antigas de simulado às matérias/frentes do fichário.
+  useQuery({
+    queryKey: ["exam-backfill", subjects.length],
+    queryFn: () => backfillExamSubjects(subjects),
+    enabled: subjects.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
 
   const reviews = useQuery({
     queryKey: ["revisoes"],

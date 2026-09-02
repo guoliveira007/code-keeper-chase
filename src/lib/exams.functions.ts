@@ -254,6 +254,22 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
     }
     const { data: reviews } = await reviewsQuery;
 
+    const { data: subjectRows } = await supabase
+      .from("subjects")
+      .select("id, name, parent_id")
+      .eq("user_id", userId);
+    const subjectList = (subjectRows ?? []).map((s) => ({
+      id: s.id,
+      nome: s.parent_id
+        ? `${(subjectRows ?? []).find((p) => p.id === s.parent_id)?.name ?? ""} · ${s.name}`
+        : s.name,
+      link: `/materia/${s.id}`,
+    }));
+
+    const linkRule = `
+Sempre que citar uma matéria ou frente que exista na lista "materias_do_fichario", transforme o nome em link markdown usando o campo "link" (ex.: [Biologia · Frente 2](/materia/uuid)). Nunca invente links.`;
+
+
     const plan = await aiText(
       examId
         ? `Você é um mentor de estudos. Escreva, em português do Brasil e em markdown, um plano de revisão focado APENAS neste simulado que o aluno acabou de corrigir.
@@ -262,14 +278,14 @@ Estrutura obrigatória:
 ## Prioridades de revisão (lista numerada: matéria, assunto e o motivo)
 ## Como estudar cada prioridade
 ## O que treinar antes do próximo simulado
-Seja específico e curto: no máximo 350 palavras. Use listas e **negrito** nos assuntos.`
+Seja específico e curto: no máximo 350 palavras. Use listas e **negrito** nos assuntos.${linkRule}`
         : `Você é um mentor de estudos. Com base no desempenho recente do aluno, escreva um plano de revisão em português do Brasil, em markdown simples.
 Estrutura obrigatória:
 ## Diagnóstico
 ## Prioridades da semana (lista numerada com matéria, assunto e o motivo)
 ## Como estudar cada prioridade
 ## Hábitos para corrigir (baseado nos tipos de erro)
-Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos assuntos.`,
+Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos assuntos.${linkRule}`,
       [
         {
           type: "text",
@@ -277,9 +293,11 @@ Seja específico e curto: no máximo 400 palavras. Use listas e **negrito** nos 
             simulados: exams,
             questoes_erradas: wrong ?? [],
             revisoes: reviews ?? [],
+            materias_do_fichario: subjectList,
           }),
         },
       ],
+
     );
 
     const { data: saved, error } = await supabase

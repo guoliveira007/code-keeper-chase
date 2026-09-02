@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -38,11 +39,27 @@ export function StudyPlanContent({ content }: { content: string }) {
             <code className="rounded bg-line px-1.5 py-0.5 font-mono text-xs text-ink">{children}</code>
           ),
           hr: () => <hr className="my-5 border-line" />,
-          a: ({ children, href }) => (
-            <a href={href} className="text-sun-deep underline-offset-4 hover:underline">
-              {children}
-            </a>
-          ),
+          a: ({ children, href }) => {
+            const to = href ?? "";
+            const internal = to.startsWith("/materia/");
+            if (internal) {
+              const id = to.slice("/materia/".length);
+              return (
+                <Link
+                  to="/materia/$id"
+                  params={{ id }}
+                  className="font-semibold text-sun-deep underline-offset-4 hover:underline"
+                >
+                  {children}
+                </Link>
+              );
+            }
+            return (
+              <a href={to} className="text-sun-deep underline-offset-4 hover:underline">
+                {children}
+              </a>
+            );
+          },
         }}
       >
         {content}
