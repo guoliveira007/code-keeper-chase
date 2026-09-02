@@ -33,7 +33,9 @@ export function PdfPane({ target }: { target: PdfTarget }) {
       if (target.url) return target.url;
       if (target.externalId) {
         const { url } = await getOneDriveFileUrl({
-          data: { itemId: target.externalId, driveId: target.driveId ?? undefined },
+          data: target.driveId
+            ? { itemId: target.externalId, driveId: target.driveId }
+            : { itemId: target.externalId },
         });
         return url;
       }
