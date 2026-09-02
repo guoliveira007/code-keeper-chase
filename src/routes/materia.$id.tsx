@@ -93,6 +93,34 @@ function MateriaPage() {
     queryFn: () => fetchQuestions(),
   });
 
+  // Liga simulados antigos às matérias antes de listar os erros desta ficha.
+  useQuery({
+    queryKey: ["exam-backfill", subjects.length],
+    queryFn: () => backfillExamSubjects(subjects),
+    enabled: subjects.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: examErrors = [] } = useQuery({
+    queryKey: ["exam-errors", ids.join(",")],
+    enabled: ids.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("exam_questions")
+        .select(
+          "id, number, subject, topic, statement, correct_answer, user_answer, created_at, exams(title, exam_date), error_reviews(why_wrong, correct_reasoning, error_type, concept)",
+        )
+        .in("subject_id", ids)
+        .eq("is_correct", false)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+
+
   const materials = allMaterials.filter((m) => ids.includes(m.subject_id));
   const cards = allCards.filter((c) => ids.includes(c.subject_id));
   const questions = allQuestions.filter((q) => ids.includes(q.subject_id));
