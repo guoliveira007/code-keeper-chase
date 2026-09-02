@@ -12,6 +12,8 @@ export type PdfTarget = {
   url?: string | null;
   /** Ou o id do item no OneDrive (link é gerado na hora, pois expira) */
   externalId?: string | null;
+  /** Drive do item, quando não está no drive padrão (ex.: pasta compartilhada) */
+  driveId?: string | null;
 };
 
 /** Conteúdo do visualizador de PDF (usado dentro do painel dividido). */
@@ -30,7 +32,11 @@ export function PdfPane({ target }: { target: PdfTarget }) {
     async function resolve() {
       if (target.url) return target.url;
       if (target.externalId) {
-        const { url } = await getOneDriveFileUrl({ data: { itemId: target.externalId } });
+        const { url } = await getOneDriveFileUrl({
+          data: target.driveId
+            ? { itemId: target.externalId, driveId: target.driveId }
+            : { itemId: target.externalId },
+        });
         return url;
       }
       if (target.path) {
@@ -50,7 +56,7 @@ export function PdfPane({ target }: { target: PdfTarget }) {
     return () => {
       active = false;
     };
-  }, [target.path, target.url, target.externalId]);
+  }, [target.path, target.url, target.externalId, target.driveId]);
 
   // 2) baixa como blob para exibir inline (evita bloqueio de iframe/download forçado)
   useEffect(() => {
