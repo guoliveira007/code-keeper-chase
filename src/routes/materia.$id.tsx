@@ -65,7 +65,7 @@ export const Route = createFileRoute("/materia/$id")({
   ),
 });
 
-type Tab = "materiais" | "aulas" | "flashcards" | "quiz";
+type Tab = "materiais" | "aulas" | "flashcards" | "quiz" | "erros";
 
 function MateriaPage() {
   const { id } = Route.useParams();
