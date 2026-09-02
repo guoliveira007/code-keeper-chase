@@ -708,7 +708,7 @@ function MateriaPage() {
           ) : (
             <ul className="mt-4 space-y-3">
               {examErrors.map((q) => {
-                const review = q.error_reviews?.[0];
+                const review = q.error_reviews;
                 return (
                   <li key={q.id} className="rounded-lg border border-line bg-paper p-4">
                     <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-ink-soft">
