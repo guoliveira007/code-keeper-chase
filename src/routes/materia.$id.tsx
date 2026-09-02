@@ -40,6 +40,7 @@ import {
   scopeIds,
 } from "@/lib/study";
 import { lessonById, lessonLabel, lessonsForSubject } from "@/data/subject-map";
+import { backfillExamSubjects } from "@/lib/exam-link";
 import type { Lesson } from "@/data/types";
 import { fetchWatchedLessons, setLessonWatched } from "@/lib/lessons";
 
