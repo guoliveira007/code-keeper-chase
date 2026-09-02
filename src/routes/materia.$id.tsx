@@ -313,6 +313,7 @@ function MateriaPage() {
 
               ["flashcards", "Flashcards"],
               ["quiz", "Quiz"],
+              ["erros", "Erros"],
             ] as const
           ).map(([key, label]) => (
             <button
