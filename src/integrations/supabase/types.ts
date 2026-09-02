@@ -14,6 +14,169 @@ export type Database = {
   }
   public: {
     Tables: {
+      error_reviews: {
+        Row: {
+          concept: string | null
+          correct_reasoning: string | null
+          created_at: string
+          error_type: string | null
+          id: string
+          question_id: string
+          user_explanation: string
+          user_id: string
+          visual_caption: string | null
+          visual_svg: string | null
+          why_wrong: string | null
+        }
+        Insert: {
+          concept?: string | null
+          correct_reasoning?: string | null
+          created_at?: string
+          error_type?: string | null
+          id?: string
+          question_id: string
+          user_explanation: string
+          user_id: string
+          visual_caption?: string | null
+          visual_svg?: string | null
+          why_wrong?: string | null
+        }
+        Update: {
+          concept?: string | null
+          correct_reasoning?: string | null
+          created_at?: string
+          error_type?: string | null
+          id?: string
+          question_id?: string
+          user_explanation?: string
+          user_id?: string
+          visual_caption?: string | null
+          visual_svg?: string | null
+          why_wrong?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_reviews_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: true
+            referencedRelation: "exam_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_questions: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          exam_id: string
+          id: string
+          is_correct: boolean | null
+          number: number
+          options: Json | null
+          statement: string | null
+          subject: string | null
+          subject_id: string | null
+          topic: string | null
+          user_answer: string | null
+          user_id: string
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          exam_id: string
+          id?: string
+          is_correct?: boolean | null
+          number: number
+          options?: Json | null
+          statement?: string | null
+          subject?: string | null
+          subject_id?: string | null
+          topic?: string | null
+          user_answer?: string | null
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          exam_id?: string
+          id?: string
+          is_correct?: boolean | null
+          number?: number
+          options?: Json | null
+          statement?: string | null
+          subject?: string | null
+          subject_id?: string | null
+          topic?: string | null
+          user_answer?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_questions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          board: string | null
+          correct_count: number
+          created_at: string
+          exam_date: string
+          exam_file_path: string | null
+          id: string
+          status: string
+          subject_id: string | null
+          title: string
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          board?: string | null
+          correct_count?: number
+          created_at?: string
+          exam_date?: string
+          exam_file_path?: string | null
+          id?: string
+          status?: string
+          subject_id?: string | null
+          title: string
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          board?: string | null
+          correct_count?: number
+          created_at?: string
+          exam_date?: string
+          exam_file_path?: string | null
+          id?: string
+          status?: string
+          subject_id?: string | null
+          title?: string
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcards: {
         Row: {
           back: string
@@ -24,6 +187,7 @@ export type Database = {
           lesson_id: string | null
           next_review: string
           reviews: number
+          source_question_id: string | null
           subject_id: string
           user_id: string
         }
@@ -36,6 +200,7 @@ export type Database = {
           lesson_id?: string | null
           next_review?: string
           reviews?: number
+          source_question_id?: string | null
           subject_id: string
           user_id: string
         }
@@ -48,10 +213,18 @@ export type Database = {
           lesson_id?: string | null
           next_review?: string
           reviews?: number
+          source_question_id?: string | null
           subject_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "flashcards_source_question_id_fkey"
+            columns: ["source_question_id"]
+            isOneToOne: false
+            referencedRelation: "exam_questions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "flashcards_subject_id_fkey"
             columns: ["subject_id"]
@@ -214,6 +387,38 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_plans: {
+        Row: {
+          content: string
+          created_at: string
+          exam_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          exam_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          exam_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plans_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
             referencedColumns: ["id"]
           },
         ]
