@@ -645,3 +645,24 @@
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
 }
+
+/* Scrollbar da sidebar na paleta "golden hour": trilho invisível,
+   polegar fino em tinta suave que escurece no hover. */
+@utility sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.479 0.039 72.6 / 0.35) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: oklch(0.479 0.039 72.6 / 0.35);
+  }
+  &:hover::-webkit-scrollbar-thumb {
+    background: oklch(0.479 0.039 72.6 / 0.55);
+  }
+}

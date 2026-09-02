@@ -154,7 +154,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
           </nav>
 
 
-          <div className="mt-6 min-h-0 flex-1 overflow-y-auto">
+          <div className="sidebar-scroll mt-6 min-h-0 flex-1 overflow-y-auto">
             <p className="px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">
               Matérias
             </p>
