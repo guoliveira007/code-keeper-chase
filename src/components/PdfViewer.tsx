@@ -32,7 +32,9 @@ export function PdfPane({ target }: { target: PdfTarget }) {
     async function resolve() {
       if (target.url) return target.url;
       if (target.externalId) {
-        const { url } = await getOneDriveFileUrl({ data: { itemId: target.externalId } });
+        const { url } = await getOneDriveFileUrl({
+          data: { itemId: target.externalId, driveId: target.driveId ?? undefined },
+        });
         return url;
       }
       if (target.path) {
@@ -52,7 +54,7 @@ export function PdfPane({ target }: { target: PdfTarget }) {
     return () => {
       active = false;
     };
-  }, [target.path, target.url, target.externalId]);
+  }, [target.path, target.url, target.externalId, target.driveId]);
 
   // 2) baixa como blob para exibir inline (evita bloqueio de iframe/download forçado)
   useEffect(() => {
