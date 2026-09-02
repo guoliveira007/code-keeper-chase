@@ -12,6 +12,8 @@ export type PdfTarget = {
   url?: string | null;
   /** Ou o id do item no OneDrive (link é gerado na hora, pois expira) */
   externalId?: string | null;
+  /** Drive do item, quando não está no drive padrão (ex.: pasta compartilhada) */
+  driveId?: string | null;
 };
 
 /** Conteúdo do visualizador de PDF (usado dentro do painel dividido). */
