@@ -8,6 +8,8 @@ import { AppShell } from "@/components/AppShell";
 import { StudyPlanContent } from "@/components/StudyPlan";
 import { supabase } from "@/integrations/supabase/client";
 import { generateStudyPlan } from "@/lib/exams.functions";
+import { backfillExamSubjects } from "@/lib/exam-link";
+import { fetchSubjects } from "@/lib/study";
 
 export const Route = createFileRoute("/revisoes")({
   head: () => ({
