@@ -252,7 +252,21 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
       if (wrongIds.length === 0) reviewsQuery = reviewsQuery.limit(0);
       else reviewsQuery = reviewsQuery.in("question_id", wrongIds);
     }
-    const { data: reviews } = await reviewsQuery;
+    const { data: subjectRows } = await supabase
+      .from("subjects")
+      .select("id, name, parent_id")
+      .eq("user_id", userId);
+    const subjectList = (subjectRows ?? []).map((s) => ({
+      id: s.id,
+      nome: s.parent_id
+        ? `${(subjectRows ?? []).find((p) => p.id === s.parent_id)?.name ?? ""} · ${s.name}`
+        : s.name,
+      link: `/materia/${s.id}`,
+    }));
+
+    const linkRule = `
+Sempre que citar uma matéria ou frente que exista na lista "materias_do_fichario", transforme o nome em link markdown usando o campo "link" (ex.: [Biologia · Frente 2](/materia/uuid)). Nunca invente links.`;
+
 
     const plan = await aiText(
       examId
