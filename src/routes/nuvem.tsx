@@ -1,13 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { BookmarkPlus, ChevronRight, Cloud, FileText, Folder, Loader2, Search, Inbox, ShieldAlert, X } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  BookmarkPlus,
+  ChevronRight,
+  Cloud,
+  FileText,
+  Folder,
+  FolderSymlink,
+  Inbox,
+  Loader2,
+  Search,
+  ShieldAlert,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { useViewer } from "@/components/SplitView";
-import { listOneDriveFolder } from "@/lib/onedrive.functions";
+import {
+  listOneDriveFolder,
+  resolveOneDriveShare,
+  SHARED_FOLDER_URL,
+  uploadOneDriveFile,
+} from "@/lib/onedrive.functions";
 import { fetchSubjects, formatSize, saveCloudMaterial, type Subject } from "@/lib/study";
 
 export const Route = createFileRoute("/nuvem")({
@@ -35,26 +53,115 @@ export const Route = createFileRoute("/nuvem")({
   ),
 });
 
+type SharedFolder = { driveId: string; itemId: string; name: string };
+
 function NuvemPage() {
   const [path, setPath] = useState("");
+  /** Pilha de pastas dentro do compartilhamento; vazia = navegando no próprio drive */
+  const [sharedStack, setSharedStack] = useState<SharedFolder[]>([]);
   const [term, setTerm] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { openPdf } = useViewer();
   const [saving, setSaving] = useState<{ id: string; name: string; size: number } | null>(null);
   const listFolder = useServerFn(listOneDriveFolder);
+  const resolveShare = useServerFn(resolveOneDriveShare);
+  const uploadFile = useServerFn(uploadOneDriveFile);
   const queryClient = useQueryClient();
   const { data: subjects = [] } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
 
+  const { data: shareRoot, isLoading: shareLoading } = useQuery({
+    queryKey: ["onedrive-share", SHARED_FOLDER_URL],
+    queryFn: () => resolveShare({ data: { shareUrl: SHARED_FOLDER_URL } }),
+    staleTime: 10 * 60 * 1000,
+    retry: 1,
+  });
+
+  const inShared = sharedStack.length > 0;
+  const currentShared = inShared ? sharedStack[sharedStack.length - 1] : null;
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["onedrive", path],
-    queryFn: () => listFolder({ data: { path } }),
+    queryKey: [
+      "onedrive",
+      currentShared ? `share:${currentShared.driveId}:${currentShared.itemId}` : path,
+    ],
+    queryFn: () =>
+      currentShared
+        ? listFolder({
+            data: {
+              driveId: currentShared.driveId,
+              itemId: currentShared.itemId,
+              path: sharedStack.map((s) => s.name).join("/"),
+            },
+          })
+        : listFolder({ data: { path } }),
   });
 
   const segments = path ? path.split("/") : [];
   const query = term.trim().toLowerCase();
   const items = (data?.items ?? []).filter((i) => i.name.toLowerCase().includes(query));
 
-  function openFile(item: { id: string; name: string }) {
-    openPdf({ title: item.name, externalId: item.id });
+  function openItem(item: {
+    id: string;
+    name: string;
+    isFolder: boolean;
+    path: string;
+    driveId: string | null;
+  }) {
+    if (item.isFolder) {
+      if (currentShared) {
+        setSharedStack((stack) => [
+          ...stack,
+          { driveId: currentShared.driveId, itemId: item.id, name: item.name },
+        ]);
+      } else {
+        setPath(item.path);
+      }
+      setTerm("");
+    } else {
+      openPdf({ title: item.name, externalId: item.id, driveId: item.driveId });
+    }
+  }
+
+  function openSharedRoot() {
+    if (!shareRoot) return;
+    setSharedStack([{ driveId: shareRoot.driveId, itemId: shareRoot.itemId, name: shareRoot.name }]);
+    setPath("");
+    setTerm("");
+  }
+
+  function goToMyDrive() {
+    setSharedStack([]);
+    setTerm("");
+  }
+
+  async function handleUpload(file: File) {
+    setUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+        reader.onerror = () => reject(new Error("Falha ao ler o arquivo."));
+        reader.readAsDataURL(file);
+      });
+      const result = await uploadFile({
+        data: {
+          ...(currentShared
+            ? { driveId: currentShared.driveId, itemId: currentShared.itemId }
+            : { path }),
+          fileName: file.name,
+          contentBase64: base64,
+          contentType: file.type || "application/octet-stream",
+        },
+      });
+      toast.success(`"${result.name}" enviado para o OneDrive.`);
+      queryClient.invalidateQueries({ queryKey: ["onedrive"] });
+    } catch (e) {
+      toast.error((e as Error).message || "Não foi possível enviar o arquivo.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   async function confirmSave(subjectId: string) {
@@ -88,47 +195,116 @@ function NuvemPage() {
           <Cloud className="size-6 text-sun" /> Nuvem de estudos
         </h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Navegue pelas pastas da sua conta Microsoft e abra os arquivos sem sair do fichário.
+          Navegue pelas pastas da sua conta Microsoft, suba arquivos e abra tudo sem sair do
+          fichário.
         </p>
       </header>
 
-      <nav className="mt-6 flex flex-wrap items-center gap-1 text-sm">
+      {shareRoot && !inShared && (
         <button
-          onClick={() => { setPath(""); setTerm(""); }}
-          className="rounded-md px-2 py-1 font-medium text-sun-deep hover:bg-sun/10"
+          onClick={openSharedRoot}
+          className="mt-4 flex w-full items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 text-left transition-colors hover:border-sun hover:bg-sun/10"
         >
-          Raiz
-        </button>
-        {segments.map((seg, i) => (
-          <span key={`${seg}-${i}`} className="flex items-center gap-1">
-            <ChevronRight className="size-3.5 text-ink-soft" />
-            <button
-              onClick={() => { setPath(segments.slice(0, i + 1).join("/")); setTerm(""); }}
-              className="rounded-md px-2 py-1 hover:bg-card"
-            >
-              {seg}
-            </button>
+          <FolderSymlink className="size-5 shrink-0 text-sun" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold">{shareRoot.name}</span>
+            <span className="block text-xs text-ink-soft">
+              Pasta compartilhada com você — toque para abrir
+            </span>
           </span>
-        ))}
+          <ChevronRight className="size-4 shrink-0 text-ink-soft" />
+        </button>
+      )}
+      {!shareRoot && shareLoading && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-line bg-card px-4 py-3 text-xs text-ink-soft">
+          <Loader2 className="size-3.5 animate-spin text-sun" /> Localizando pasta compartilhada…
+        </div>
+      )}
+
+      <nav className="mt-4 flex flex-wrap items-center gap-1 text-sm">
+        {inShared ? (
+          <>
+            <button
+              onClick={goToMyDrive}
+              className="rounded-md px-2 py-1 font-medium text-sun-deep hover:bg-sun/10"
+            >
+              Meu OneDrive
+            </button>
+            {sharedStack.map((seg, i) => (
+              <span key={seg.itemId} className="flex items-center gap-1">
+                <ChevronRight className="size-3.5 text-ink-soft" />
+                <button
+                  onClick={() => { setSharedStack(sharedStack.slice(0, i + 1)); setTerm(""); }}
+                  className="rounded-md px-2 py-1 hover:bg-card"
+                >
+                  {seg.name}
+                </button>
+              </span>
+            ))}
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => { setPath(""); setTerm(""); }}
+              className="rounded-md px-2 py-1 font-medium text-sun-deep hover:bg-sun/10"
+            >
+              Raiz
+            </button>
+            {segments.map((seg, i) => (
+              <span key={`${seg}-${i}`} className="flex items-center gap-1">
+                <ChevronRight className="size-3.5 text-ink-soft" />
+                <button
+                  onClick={() => { setPath(segments.slice(0, i + 1).join("/")); setTerm(""); }}
+                  className="rounded-md px-2 py-1 hover:bg-card"
+                >
+                  {seg}
+                </button>
+              </span>
+            ))}
+          </>
+        )}
       </nav>
 
-      <div className="mt-4 flex items-center gap-2 rounded-xl border border-line bg-card px-3 py-2">
-        <Search className="size-4 shrink-0 text-ink-soft" />
+      <div className="mt-4 flex items-center gap-2">
+        <div className="flex flex-1 items-center gap-2 rounded-xl border border-line bg-card px-3 py-2">
+          <Search className="size-4 shrink-0 text-ink-soft" />
+          <input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder="Buscar arquivos e pastas nesta pasta…"
+            aria-label="Buscar arquivos e pastas"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-ink-soft"
+          />
+          {term ? (
+            <button
+              onClick={() => setTerm("")}
+              className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-sun-deep hover:underline"
+            >
+              limpar
+            </button>
+          ) : null}
+        </div>
         <input
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          placeholder="Buscar arquivos e pastas nesta pasta…"
-          aria-label="Buscar arquivos e pastas"
-          className="w-full bg-transparent text-sm outline-none placeholder:text-ink-soft"
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) void handleUpload(file);
+          }}
         />
-        {term ? (
-          <button
-            onClick={() => setTerm("")}
-            className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-sun-deep hover:underline"
-          >
-            limpar
-          </button>
-        ) : null}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="flex shrink-0 items-center gap-1.5 rounded-xl bg-sun px-3 py-2 text-sm font-medium text-ink transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {uploading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" />
+          )}
+          {uploading ? "Enviando…" : "Enviar"}
+        </button>
       </div>
 
       <section className="mt-4 rounded-xl border border-line bg-card p-5">
@@ -149,7 +325,7 @@ function NuvemPage() {
             <p className="text-xs text-ink-soft">
               {query
                 ? "Tente outro termo ou limpe a busca."
-                : "Envie arquivos para o OneDrive para vê-los aqui."}
+                : "Use o botão Enviar para subir o primeiro arquivo."}
             </p>
           </div>
         ) : (
@@ -162,7 +338,7 @@ function NuvemPage() {
                   <FileText className="size-4 shrink-0 text-ink-soft" />
                 )}
                 <button
-                  onClick={() => { if (item.isFolder) { setPath(item.path); setTerm(""); } else { openFile(item); } }}
+                  onClick={() => openItem(item)}
                   className="min-w-0 flex-1 text-left text-sm font-medium hover:text-sun-deep"
                 >
                   <span className="block truncate">{item.name}</span>
