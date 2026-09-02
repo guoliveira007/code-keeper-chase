@@ -252,6 +252,8 @@ export const generateStudyPlan = createServerFn({ method: "POST" })
       if (wrongIds.length === 0) reviewsQuery = reviewsQuery.limit(0);
       else reviewsQuery = reviewsQuery.in("question_id", wrongIds);
     }
+    const { data: reviews } = await reviewsQuery;
+
     const { data: subjectRows } = await supabase
       .from("subjects")
       .select("id, name, parent_id")
