@@ -7,7 +7,37 @@ import bustoArnaldo from "@/assets/reward-busto-arnaldo.jpg";
 import bustoOctavio from "@/assets/reward-busto-octavio.jpg";
 import fachadaNoite from "@/assets/reward-fachada-noite.jpg";
 import portaoFmusp from "@/assets/reward-portao-fmusp.jpg";
-import type { RewardId } from "@/lib/rewards";
+import epm11961 from "@/assets/reward-x-epm-11961.jpg";
+import epmAnatomia from "@/assets/reward-x-epm-anatomia.jpg";
+import epmFachada2026 from "@/assets/reward-x-epm-fachada-2026.jpg";
+import epmHspFachada from "@/assets/reward-x-epm-hsp-fachada.jpg";
+import epmLeitao from "@/assets/reward-x-epm-leitao.jpg";
+import epmLustre from "@/assets/reward-x-epm-lustre.jpg";
+import epmOctavioAlta from "@/assets/reward-x-epm-octavio-alta.jpg";
+import fmusp17 from "@/assets/reward-x-fmusp-17.jpg";
+import fmusp18 from "@/assets/reward-x-fmusp-18.jpg";
+import fmusp1935 from "@/assets/reward-x-fmusp-1935.jpg";
+import fmusp2025a from "@/assets/reward-x-fmusp-2025a.jpg";
+import fmusp2025b from "@/assets/reward-x-fmusp-2025b.jpg";
+import fmusp8 from "@/assets/reward-x-fmusp-8.jpg";
+import fmuspAerea1 from "@/assets/reward-x-fmusp-aerea-1.jpg";
+import fmuspAerea2 from "@/assets/reward-x-fmusp-aerea-2.jpg";
+import fmuspAerea2000 from "@/assets/reward-x-fmusp-aerea-2000.png";
+import fmuspHaberkorn from "@/assets/reward-x-fmusp-haberkorn.jpg";
+import fmuspParcial from "@/assets/reward-x-fmusp-parcial.jpg";
+import hcAntigo from "@/assets/reward-x-hc-antigo.jpg";
+import hcEntrada from "@/assets/reward-x-hc-entrada.jpg";
+import hcGrafitti from "@/assets/reward-x-hc-grafitti.jpg";
+import hcIcesp from "@/assets/reward-x-hc-icesp.jpg";
+import unifespCampusSp from "@/assets/reward-x-unifesp-campus-sp.jpg";
+import unifespHemocentro from "@/assets/reward-x-unifesp-hemocentro.jpg";
+import unifespHsp from "@/assets/reward-x-unifesp-hsp.jpg";
+import unifespHsp1 from "@/assets/reward-x-unifesp-hsp1.jpg";
+import unifespPesquisas2 from "@/assets/reward-x-unifesp-pesquisas2.jpg";
+import unifespReitoria from "@/assets/reward-x-unifesp-reitoria.jpg";
+import unifespRim from "@/assets/reward-x-unifesp-rim.jpg";
+import unifespVilaClementino from "@/assets/reward-x-unifesp-vila-clementino.jpg";
+import { EXTRA_REWARDS, type RewardId, type Stats } from "@/lib/rewards";
 
 
 const CONFETTI = Array.from({ length: 70 }, (_, i) => ({
@@ -121,6 +151,39 @@ function Sparks() {
   );
 }
 
+/** Fileira de chamas (metas de sequência). */
+function Flames({ count = 7 }: { count?: number }) {
+  return (
+    <div className="absolute inset-x-0 top-4 flex justify-center gap-2">
+      {Array.from({ length: count }, (_, i) => (
+        <span
+          key={i}
+          className="reward-flame block text-2xl drop-shadow"
+          style={{ animationDelay: `${i * 0.16}s` }}
+        >
+          🔥
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Linha de ECG (metas de questões). */
+function EcgLine() {
+  return (
+    <svg viewBox="0 0 300 60" className="mt-6 h-14 w-[min(80vw,420px)] text-primary" aria-hidden="true">
+      <path
+        className="reward-ecg"
+        d="M0 30 H60 l10 -22 l10 44 l10 -22 H150 l10 -14 l8 28 l8 -14 H300"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 /** Contador que sobe até um valor. */
 function Count({ to, suffix = "" }: { to: number; suffix?: string }) {
   const [n, setN] = useState(0);
@@ -184,13 +247,49 @@ function Poster({
   );
 }
 
-const PHOTOS = [
+type Photo = { src: string; alt: string; caption: string };
+
+/**
+ * Acervo de fotos reais da FMUSP, do HC-FMUSP e da EPM/Unifesp.
+ * Cada recompensa recebe uma foto própria deste pool (36 imagens).
+ */
+const PHOTOS: Photo[] = [
   { src: portaoFmusp, alt: "Entrada da Faculdade de Medicina da USP", caption: "entrada · fmusp · foto: wikimedia commons (cc by-sa)" },
   { src: fachadaNoite, alt: "Fachada da Faculdade de Medicina da USP", caption: "fachada · fmusp · foto: wikimedia commons (cc by-sa)" },
   { src: bustoArnaldo, alt: "Edifício da FMUSP na Av. Dr. Arnaldo", caption: "av. dr. arnaldo, 455 · fmusp · foto: wikimedia commons (cc by-sa)" },
   { src: bustoOctavio, alt: "Prédio Octávio de Carvalho, EPM/Unifesp", caption: "prédio octávio de carvalho · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
   { src: arcadas, alt: "Arcadas da Faculdade de Medicina da USP", caption: "arcadas · fmusp · foto: wikimedia commons (cc by-sa)" },
   { src: aprovado, alt: "Fachada da Escola Paulista de Medicina", caption: "epm/unifesp · foto: wikimedia commons (cc by)" },
+  { src: fmuspAerea1, alt: "Vista aérea da Faculdade de Medicina da USP", caption: "vista aérea · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmuspAerea2, alt: "Vista aérea do conjunto da FMUSP e do Hospital das Clínicas", caption: "vista aérea · fmusp/hc · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp17, alt: "Estátua em frente à Faculdade de Medicina da USP", caption: "estátua · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp18, alt: "Placa comemorativa na Faculdade de Medicina da USP", caption: "placa histórica · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp8, alt: "Arredores da Faculdade de Medicina da USP", caption: "campus · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp2025a, alt: "Placa do Américo de Dias Enérgico de Sousa Lins na FMUSP", caption: "homenagem · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp2025b, alt: "Painel histórico no interior da FMUSP", caption: "painel histórico · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: fmusp1935, alt: "Vista aérea histórica da Faculdade de Medicina, em preto e branco", caption: "vista histórica · fmusp · foto: wikimedia commons (domínio público)" },
+  { src: fmuspHaberkorn, alt: "Foto histórica da Faculdade de Medicina por Werner Haberkorn", caption: "acervo museu paulista · fmusp · foto: wikimedia commons (domínio público)" },
+  { src: fmuspParcial, alt: "Vista parcial histórica da Faculdade de Medicina da USP", caption: "vista parcial · fmusp · foto: wikimedia commons (domínio público)" },
+  { src: fmuspAerea2000, alt: "Vista aérea da Faculdade de Medicina da USP na década de 2000", caption: "anos 2000 · fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: hcEntrada, alt: "Entrada do Instituto Central do Hospital das Clínicas", caption: "instituto central · hc-fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: hcIcesp, alt: "Interior do Instituto do Câncer do Estado de São Paulo", caption: "icesp · hc-fmusp · foto: wikimedia commons (cc by)" },
+  { src: hcGrafitti, alt: "Grafite em homenagem aos profissionais da saúde do Hospital das Clínicas", caption: "grafite · hc-fmusp · foto: wikimedia commons (cc by-sa)" },
+  { src: hcAntigo, alt: "Foto antiga do Hospital das Clínicas", caption: "arquivo histórico · hc-fmusp · foto: wikimedia commons (domínio público)" },
+  { src: epmFachada2026, alt: "Fachada da Escola Paulista de Medicina", caption: "fachada · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epmHspFachada, alt: "Fachada do Hospital São Paulo, hospital universitário da EPM", caption: "hospital são paulo · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epmLeitao, alt: "Pátio interno da Escola Paulista de Medicina", caption: "pátio · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epmAnatomia, alt: "Prédio de Anatomia da Escola Paulista de Medicina", caption: "prédio de anatomia · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epmOctavioAlta, alt: "Placa do fundador Octávio de Carvalho na EPM", caption: "fundador · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epmLustre, alt: "Lustre histórico em frente à direção da EPM", caption: "lustre histórico · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: epm11961, alt: "Sala de aula da Escola Paulista de Medicina", caption: "sala de aula · epm/unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespCampusSp, alt: "Campus São Paulo da Unifesp", caption: "campus são paulo · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespPesquisas2, alt: "Edifício de Pesquisas II do Campus São Paulo da Unifesp", caption: "ed. pesquisas ii · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespHemocentro, alt: "Hemocentro da Unifesp no Hospital São Paulo", caption: "hemocentro · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespRim, alt: "Hospital do Rim e Hipertensão da Unifesp", caption: "hospital do rim · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespHsp, alt: "Hospital São Paulo da Unifesp", caption: "hospital são paulo · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespHsp1, alt: "Torres do Hospital São Paulo da Unifesp", caption: "hospital são paulo · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespReitoria, alt: "Reitoria da Unifesp", caption: "reitoria · unifesp · foto: wikimedia commons (cc by-sa)" },
+  { src: unifespVilaClementino, alt: "Vista aérea da Unifesp na Vila Clementino", caption: "vila clementino · unifesp · foto: wikimedia commons (cc by-sa)" },
 ];
 
 /** Cenas das metas intermediárias: mesma linguagem visual, textos próprios. */
@@ -251,30 +350,67 @@ const EXTRA_SCENES: Record<string, { title: string; line: string; badge: string 
   "horas-1000": { title: "Mil horas", line: "Mil horas: o jaleco é questão de tempo.", badge: "horas" },
 };
 
-function hashIndex(id: string, mod: number) {
-  let h = 0;
-  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) % 9973;
-  return h % mod;
+type Effect = "confetti" | "confetti-dense" | "sparks" | "flames" | "ecg";
+
+/** Efeito-base por família de estatística — cada tipo de meta ganha uma animação própria. */
+const EFFECT_BY_STAT: Record<keyof Stats, Effect> = {
+  reviews: "confetti",
+  streak: "flames",
+  learned: "sparks",
+  correct: "ecg",
+  materialsRead: "confetti",
+  points: "confetti-dense",
+  hours: "sparks",
+};
+
+/** Efeito alternativo na segunda volta do acervo, para nenhuma cena se repetir. */
+const ALT_EFFECT: Record<Effect, Effect> = {
+  confetti: "sparks",
+  "confetti-dense": "confetti",
+  sparks: "confetti",
+  flames: "confetti-dense",
+  ecg: "sparks",
+};
+
+const EXTRA_ORDER: string[] = EXTRA_REWARDS.map((r) => r.id);
+const EXTRA_STAT = new Map<string, keyof Stats>(EXTRA_REWARDS.map((r) => [r.id, r.stat]));
+
+function extraSceneConfig(id: string) {
+  const i = Math.max(0, EXTRA_ORDER.indexOf(id));
+  const secondRound = i >= PHOTOS.length;
+  const photo = PHOTOS[i % PHOTOS.length]!;
+  const stat = EXTRA_STAT.get(id) ?? "reviews";
+  const baseEffect = EFFECT_BY_STAT[stat];
+  return {
+    photo,
+    effect: (secondRound ? ALT_EFFECT[baseEffect] : baseEffect) as Effect,
+    motion: (secondRound ? i % 2 === 0 : i % 2 !== 0) ? ("in" as const) : ("out" as const),
+    wide: secondRound ? i % 3 !== 0 : i % 3 === 0 ? false : true,
+    flames: 5 + (i % 5),
+  };
 }
 
 function ExtraScene({ id }: { id: string }) {
   const meta = EXTRA_SCENES[id]!;
-  const idx = hashIndex(id, PHOTOS.length);
-  const photo = PHOTOS[idx]!;
-  const dense = idx % 2 === 0;
+  const { photo, effect, motion, wide, flames } = extraSceneConfig(id);
   return (
     <Frame title={meta.title} line={meta.line}>
-      {dense ? <Confetti /> : <Sparks />}
+      {effect === "confetti" && <Confetti />}
+      {effect === "confetti-dense" && <Confetti dense />}
+      {effect === "sparks" && <Sparks />}
       <Poster
         src={photo.src}
         alt={photo.alt}
         caption={photo.caption}
-        motion={idx % 2 === 0 ? "out" : "in"}
+        motion={motion}
+        wide={wide}
       >
+        {effect === "flames" && <Flames count={flames} />}
         <span className="reward-badge absolute left-4 top-4 rounded-md border border-sun/60 bg-card/85 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.18em] text-sun-deep">
           {meta.badge}
         </span>
       </Poster>
+      {effect === "ecg" && <EcgLine />}
     </Frame>
   );
 }
@@ -310,17 +446,7 @@ function Scene({ id }: { id: RewardId }) {
           alt="Foto da fachada da Faculdade de Medicina da USP"
           caption="fachada · fmusp · foto: wikimedia commons (cc by-sa)"
         >
-          <div className="absolute inset-x-0 top-4 flex justify-center gap-2">
-            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-              <span
-                key={i}
-                className="reward-flame block text-2xl drop-shadow"
-                style={{ animationDelay: `${i * 0.16}s` }}
-              >
-                🔥
-              </span>
-            ))}
-          </div>
+          <Flames count={7} />
         </Poster>
         <p className="reward-late mt-6 font-display text-4xl font-bold text-streak">
           <Count to={7} suffix=" dias" />
@@ -358,16 +484,7 @@ function Scene({ id }: { id: RewardId }) {
             caption="prédio octávio de carvalho · epm/unifesp · foto: wikimedia commons (cc by-sa)"
             wide={false}
           />
-          <svg viewBox="0 0 300 60" className="mt-6 h-14 w-[min(80vw,420px)] text-primary" aria-hidden="true">
-            <path
-              className="reward-ecg"
-              d="M0 30 H60 l10 -22 l10 44 l10 -22 H150 l10 -14 l8 28 l8 -14 H300"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
+          <EcgLine />
         </div>
         <p className="reward-late mt-2 font-mono text-xs text-ink-soft">
           <Count to={200} suffix=" questões certas" />
