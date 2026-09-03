@@ -46,8 +46,9 @@ function AulasPage() {
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
   const [summaryLesson, setSummaryLesson] = useState<
-    { id: string; title: string; subject?: string } | null
+    { id: string; title: string; subject?: string; frente?: string } | null
   >(null);
+
 
   const { data: summarized = [] } = useQuery({
     queryKey: ["lesson-summaries"],
