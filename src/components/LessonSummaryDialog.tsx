@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { FileText, Loader2, Upload } from "lucide-react";
+import { Download, FileText, Loader2, Upload } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { generateLessonSummary } from "@/lib/lesson-summary.functions";
+import { downloadSummaryPdf } from "@/lib/summary-pdf";
 
 type Props = {
   lesson: { id: string; title: string; subject?: string } | null;
@@ -161,15 +162,31 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
               </ReactMarkdown>
             </div>
 
-            <button
-              onClick={() => {
-                setTranscript(data.transcript ?? "");
-                setEditing(true);
-              }}
-              className="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-ink-soft transition-colors hover:text-sun-deep"
-            >
-              enviar nova transcrição
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => {
+                  if (!lesson) return;
+                  downloadSummaryPdf({
+                    title: lesson.title,
+                    subject: lesson.subject ?? null,
+                    markdown: data.summary,
+                    updatedAt: data.updated_at,
+                  });
+                }}
+                className="flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-ink-soft transition-colors hover:text-sun-deep"
+              >
+                <Download className="size-3.5" /> baixar PDF
+              </button>
+              <button
+                onClick={() => {
+                  setTranscript(data.transcript ?? "");
+                  setEditing(true);
+                }}
+                className="rounded-md border border-line px-3 py-1.5 font-mono text-[11px] text-ink-soft transition-colors hover:text-sun-deep"
+              >
+                enviar nova transcrição
+              </button>
+            </div>
           </div>
         )}
       </DialogContent>
