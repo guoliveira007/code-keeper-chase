@@ -56,3 +56,26 @@ export function lessonById(id?: string | null): Lesson | undefined {
 export function lessonLabel(lesson: Lesson) {
   return `${lesson.date} · ${lesson.title}`;
 }
+
+/**
+ * Id da matéria no banco correspondente à frente de uma aula.
+ * Ex.: matéria "Português" + frente "Literatura" -> id de "Português (Frente Literatura)".
+ * Cai para a matéria-mãe quando não existe a subpasta.
+ */
+export function subjectIdForLesson(
+  dbSubjects: { id: string; name: string; parent_id: string | null }[],
+  parentName: string,
+  frente?: string | null,
+): string | null {
+  const parent = dbSubjects.find((s) => !s.parent_id && s.name === parentName);
+  if (!parent) return null;
+  const key = (frente ?? "").trim().toLowerCase();
+  if (key) {
+    const child = dbSubjects.find(
+      (s) => s.parent_id === parent.id && frenteKeyFromName(s.name).toLowerCase() === key,
+    );
+    if (child) return child.id;
+  }
+  return parent.id;
+}
+
