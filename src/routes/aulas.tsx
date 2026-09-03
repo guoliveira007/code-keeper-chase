@@ -224,6 +224,20 @@ function AulasPage() {
                 >
                   <PlayCircle className="size-3.5" /> abrir aula
                 </button>
+                <button
+                  onClick={() =>
+                    setSummaryLesson({ id: l.id, title: l.title, subject: subject.label })
+                  }
+                  className={
+                    summarizedSet.has(l.id)
+                      ? "flex shrink-0 items-center gap-1 rounded-md border border-sun px-2.5 py-1.5 font-mono text-[11px] text-sun-deep"
+                      : "flex shrink-0 items-center gap-1 rounded-md border border-line px-2.5 py-1.5 font-mono text-[11px] text-ink-soft transition-colors hover:text-sun-deep"
+                  }
+                >
+                  <FileText className="size-3.5" />{" "}
+                  {summarizedSet.has(l.id) ? "ver resumo" : "resumo"}
+                </button>
+
               </li>
             );
           })}
