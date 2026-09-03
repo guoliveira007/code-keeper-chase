@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_lessons: {
+        Row: {
+          created_at: string
+          date: string
+          frente: string
+          id: string
+          professor: string
+          subject: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          frente?: string
+          id?: string
+          professor?: string
+          subject: string
+          title: string
+          url?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          frente?: string
+          id?: string
+          professor?: string
+          subject?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       error_reviews: {
         Row: {
           concept: string | null
