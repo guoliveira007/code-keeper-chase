@@ -42,10 +42,42 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
     enabled: !!lesson,
   });
 
+  const { data: dbSubjects = [] } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
+  const targetSubjectId = lesson?.subject
+    ? subjectIdForLesson(dbSubjects, lesson.subject, lesson.frente)
+    : null;
+
+  const genItems = useServerFn(generateFromLessonSummary);
+  const [pending, setPending] = useState<"flashcards" | "quiz" | null>(null);
+
+  async function generateItems(kind: "flashcards" | "quiz") {
+    if (!lesson || !targetSubjectId) {
+      toast.error("Não encontrei a frente desta aula nas suas matérias.");
+      return;
+    }
+    setPending(kind);
+    try {
+      const res = await genItems({
+        data: { lessonId: lesson.id, subjectId: targetSubjectId, kind, count: 25 },
+      });
+      toast.success(
+        kind === "flashcards"
+          ? `${res.created} flashcards criados na frente da aula.`
+          : `${res.created} questões criadas na frente da aula.`,
+      );
+      queryClient.invalidateQueries({ queryKey: [kind === "flashcards" ? "flashcards" : "questions"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível gerar agora.");
+    } finally {
+      setPending(null);
+    }
+  }
+
   useEffect(() => {
     setTranscript("");
     setEditing(false);
   }, [lesson?.id]);
+
 
   const mutation = useMutation({
     mutationFn: async () => {
