@@ -290,7 +290,7 @@ function AulasPage() {
                   <button
                     onClick={() => removeCustom(customIds.get(l.id)!)}
                     aria-label="Remover aula adicionada"
-                    className="shrink-0 rounded-md border border-line p-1.5 text-ink-soft transition-colors hover:text-danger"
+                    className="shrink-0 rounded-md border border-line p-1.5 text-ink-soft transition-colors hover:text-destructive"
                   >
                     <Trash2 className="size-3.5" />
                   </button>
