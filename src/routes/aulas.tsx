@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Check, PlayCircle } from "lucide-react";
+import { Check, FileText, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { useViewer } from "@/components/SplitView";
 import { AppShell } from "@/components/AppShell";
+import { LessonSummaryDialog } from "@/components/LessonSummaryDialog";
 import { subjects, professorColor } from "@/data/subjects";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchWatchedLessons, setLessonWatched, normalizeText } from "@/lib/lessons";
+
 
 export const Route = createFileRoute("/aulas")({
   head: () => ({
@@ -42,6 +45,21 @@ function AulasPage() {
   const [frente, setFrente] = useState("todas");
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
+  const [summaryLesson, setSummaryLesson] = useState<
+    { id: string; title: string; subject?: string } | null
+  >(null);
+
+  const { data: summarized = [] } = useQuery({
+    queryKey: ["lesson-summaries"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("lesson_summaries").select("lesson_id");
+      if (error) throw error;
+      return (data ?? []).map((r) => r.lesson_id);
+    },
+  });
+  const summarizedSet = useMemo(() => new Set(summarized), [summarized]);
+
+
 
   const subject = subjects.find((s) => s.id === subjectId)!;
 
@@ -206,11 +224,31 @@ function AulasPage() {
                 >
                   <PlayCircle className="size-3.5" /> abrir aula
                 </button>
+                <button
+                  onClick={() =>
+                    setSummaryLesson({ id: l.id, title: l.title, subject: subject.label })
+                  }
+                  className={
+                    summarizedSet.has(l.id)
+                      ? "flex shrink-0 items-center gap-1 rounded-md border border-sun px-2.5 py-1.5 font-mono text-[11px] text-sun-deep"
+                      : "flex shrink-0 items-center gap-1 rounded-md border border-line px-2.5 py-1.5 font-mono text-[11px] text-ink-soft transition-colors hover:text-sun-deep"
+                  }
+                >
+                  <FileText className="size-3.5" />{" "}
+                  {summarizedSet.has(l.id) ? "ver resumo" : "resumo"}
+                </button>
+
               </li>
             );
           })}
         </ul>
       </section>
+
+      <LessonSummaryDialog
+        lesson={summaryLesson}
+        onOpenChange={(open) => !open && setSummaryLesson(null)}
+      />
     </>
+
   );
 }
