@@ -45,6 +45,7 @@ function AulasPage() {
   const [frente, setFrente] = useState("todas");
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const [summaryLesson, setSummaryLesson] = useState<
     { id: string; title: string; subject?: string; frente?: string } | null
   >(null);
@@ -60,9 +61,29 @@ function AulasPage() {
   });
   const summarizedSet = useMemo(() => new Set(summarized), [summarized]);
 
+  const { data: customLessons = [] } = useQuery({
+    queryKey: ["custom-lessons"],
+    queryFn: fetchCustomLessons,
+  });
 
+  const baseSubject = subjects.find((s) => s.id === subjectId)!;
 
-  const subject = subjects.find((s) => s.id === subjectId)!;
+  const subject = useMemo(() => {
+    const extras = customLessons.filter((l) => l.subject === subjectId);
+    if (extras.length === 0) return baseSubject;
+    const lessons = [...baseSubject.lessons, ...extras];
+    return {
+      ...baseSubject,
+      lessons,
+      professors: [...new Set(lessons.map((l) => l.professor))],
+      months: [...new Set(lessons.map((l) => l.month))],
+    };
+  }, [baseSubject, customLessons, subjectId]);
+
+  const customIds = useMemo(
+    () => new Map(customLessons.map((l) => [l.id, l.rowId])),
+    [customLessons],
+  );
 
   const frentes = useMemo(
     () => [...new Set(subject.lessons.map((l) => l.frente))].sort((a, b) => a.localeCompare(b, "pt-BR")),
@@ -97,6 +118,17 @@ function AulasPage() {
       toast.error("Não foi possível salvar a revisão.");
     }
   }
+
+  async function removeCustom(rowId: string) {
+    try {
+      await deleteCustomLesson(rowId);
+      queryClient.invalidateQueries({ queryKey: ["custom-lessons"] });
+      toast.success("Aula removida.");
+    } catch {
+      toast.error("Não foi possível remover a aula.");
+    }
+  }
+
 
   return (
     <>
