@@ -214,6 +214,30 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
                 <Download className="size-3.5" /> baixar PDF
               </button>
               <button
+                disabled={pending !== null}
+                onClick={() => void generateItems("flashcards")}
+                className="flex items-center gap-1.5 rounded-md bg-sun px-3 py-1.5 font-mono text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {pending === "flashcards" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Layers className="size-3.5" />
+                )}
+                gerar 25 flashcards
+              </button>
+              <button
+                disabled={pending !== null}
+                onClick={() => void generateItems("quiz")}
+                className="flex items-center gap-1.5 rounded-md bg-sun px-3 py-1.5 font-mono text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {pending === "quiz" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <ListChecks className="size-3.5" />
+                )}
+                gerar 25 questões
+              </button>
+              <button
                 onClick={() => {
                   setTranscript(data.transcript ?? "");
                   setEditing(true);
@@ -222,6 +246,7 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
               >
                 enviar nova transcrição
               </button>
+
             </div>
           </div>
         )}
