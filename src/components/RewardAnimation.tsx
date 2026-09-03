@@ -372,8 +372,8 @@ const ALT_EFFECT: Record<Effect, Effect> = {
   ecg: "sparks",
 };
 
-const EXTRA_ORDER = EXTRA_REWARDS.map((r) => r.id);
-const EXTRA_STAT = new Map(EXTRA_REWARDS.map((r) => [r.id, r.stat]));
+const EXTRA_ORDER: string[] = EXTRA_REWARDS.map((r) => r.id);
+const EXTRA_STAT = new Map<string, keyof Stats>(EXTRA_REWARDS.map((r) => [r.id, r.stat]));
 
 function extraSceneConfig(id: string) {
   const i = Math.max(0, EXTRA_ORDER.indexOf(id));
