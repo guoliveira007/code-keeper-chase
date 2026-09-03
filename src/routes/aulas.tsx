@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Check, PlayCircle } from "lucide-react";
+import { Check, FileText, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { useViewer } from "@/components/SplitView";
 import { AppShell } from "@/components/AppShell";
+import { LessonSummaryDialog } from "@/components/LessonSummaryDialog";
 import { subjects, professorColor } from "@/data/subjects";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchWatchedLessons, setLessonWatched, normalizeText } from "@/lib/lessons";
+
 
 export const Route = createFileRoute("/aulas")({
   head: () => ({
