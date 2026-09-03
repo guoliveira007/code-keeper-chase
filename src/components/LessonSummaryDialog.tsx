@@ -168,7 +168,7 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
                   if (!lesson) return;
                   downloadSummaryPdf({
                     title: lesson.title,
-                    subject: lesson.subject,
+                    subject: lesson.subject ?? null,
                     markdown: data.summary,
                     updatedAt: data.updated_at,
                   });
