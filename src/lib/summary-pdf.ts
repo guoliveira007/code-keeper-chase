@@ -172,7 +172,7 @@ export function downloadSummaryPdf(opts: {
       ensure(16);
       setFont("normal", 10, SUN);
       doc.text("•", MARGIN + 6, y);
-      writeRich(parseInline(bullet[1]), 10, 20);
+      writeRich(parseInline(bullet[1] ?? ""), 10, 20);
       continue;
     }
 
@@ -181,7 +181,7 @@ export function downloadSummaryPdf(opts: {
       ensure(16);
       setFont("bold", 10, SUN);
       doc.text(`${num[1]}.`, MARGIN + 2, y);
-      writeRich(parseInline(num[2]), 10, 22);
+      writeRich(parseInline(num[2] ?? ""), 10, 22);
       continue;
     }
 
