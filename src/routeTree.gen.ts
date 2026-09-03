@@ -15,6 +15,7 @@ import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FlashcardsRouteImport } from './routes/flashcards'
 import { Route as NuvemRouteImport } from './routes/nuvem'
+import { Route as PreviewRecompensaRouteImport } from './routes/preview-recompensa'
 import { Route as QuizzesRouteImport } from './routes/quizzes'
 import { Route as RevisoesRouteImport } from './routes/revisoes'
 import { Route as MateriaIdRouteImport } from './routes/materia.$id'
@@ -50,6 +51,11 @@ const FlashcardsRoute = FlashcardsRouteImport.update({
 const NuvemRoute = NuvemRouteImport.update({
   id: '/nuvem',
   path: '/nuvem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewRecompensaRoute = PreviewRecompensaRouteImport.update({
+  id: '/preview-recompensa',
+  path: '/preview-recompensa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QuizzesRoute = QuizzesRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/flashcards': typeof FlashcardsRoute
   '/nuvem': typeof NuvemRoute
+  '/preview-recompensa': typeof PreviewRecompensaRoute
   '/quizzes': typeof QuizzesRoute
   '/revisoes': typeof RevisoesRoute
   '/materia/$id': typeof MateriaIdRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/flashcards': typeof FlashcardsRoute
   '/nuvem': typeof NuvemRoute
+  '/preview-recompensa': typeof PreviewRecompensaRoute
   '/quizzes': typeof QuizzesRoute
   '/revisoes': typeof RevisoesRoute
   '/materia/$id': typeof MateriaIdRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/flashcards': typeof FlashcardsRoute
   '/nuvem': typeof NuvemRoute
+  '/preview-recompensa': typeof PreviewRecompensaRoute
   '/quizzes': typeof QuizzesRoute
   '/revisoes': typeof RevisoesRoute
   '/materia/$id': typeof MateriaIdRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/flashcards'
     | '/nuvem'
+    | '/preview-recompensa'
     | '/quizzes'
     | '/revisoes'
     | '/materia/$id'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/flashcards'
     | '/nuvem'
+    | '/preview-recompensa'
     | '/quizzes'
     | '/revisoes'
     | '/materia/$id'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/flashcards'
     | '/nuvem'
+    | '/preview-recompensa'
     | '/quizzes'
     | '/revisoes'
     | '/materia/$id'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   FlashcardsRoute: typeof FlashcardsRoute
   NuvemRoute: typeof NuvemRoute
+  PreviewRecompensaRoute: typeof PreviewRecompensaRoute
   QuizzesRoute: typeof QuizzesRoute
   RevisoesRoute: typeof RevisoesRoute
   MateriaIdRoute: typeof MateriaIdRoute
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/nuvem'
       fullPath: '/nuvem'
       preLoaderRoute: typeof NuvemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview-recompensa': {
+      id: '/preview-recompensa'
+      path: '/preview-recompensa'
+      fullPath: '/preview-recompensa'
+      preLoaderRoute: typeof PreviewRecompensaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/quizzes': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   FlashcardsRoute: FlashcardsRoute,
   NuvemRoute: NuvemRoute,
+  PreviewRecompensaRoute: PreviewRecompensaRoute,
   QuizzesRoute: QuizzesRoute,
   RevisoesRoute: RevisoesRoute,
   MateriaIdRoute: MateriaIdRoute,
