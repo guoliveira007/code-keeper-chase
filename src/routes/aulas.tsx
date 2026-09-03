@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Check, FileText, PlayCircle } from "lucide-react";
+import { Check, FileText, PlayCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useViewer } from "@/components/SplitView";
 import { AppShell } from "@/components/AppShell";
 import { LessonSummaryDialog } from "@/components/LessonSummaryDialog";
+import { AddLessonDialog } from "@/components/AddLessonDialog";
 import { subjects, professorColor } from "@/data/subjects";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchWatchedLessons, setLessonWatched, normalizeText } from "@/lib/lessons";
+import { fetchCustomLessons, deleteCustomLesson } from "@/lib/custom-lessons";
 
 
 export const Route = createFileRoute("/aulas")({
@@ -45,6 +47,7 @@ function AulasPage() {
   const [frente, setFrente] = useState("todas");
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
+  const [adding, setAdding] = useState(false);
   const [summaryLesson, setSummaryLesson] = useState<
     { id: string; title: string; subject?: string; frente?: string } | null
   >(null);
@@ -60,9 +63,29 @@ function AulasPage() {
   });
   const summarizedSet = useMemo(() => new Set(summarized), [summarized]);
 
+  const { data: customLessons = [] } = useQuery({
+    queryKey: ["custom-lessons"],
+    queryFn: fetchCustomLessons,
+  });
 
+  const baseSubject = subjects.find((s) => s.id === subjectId)!;
 
-  const subject = subjects.find((s) => s.id === subjectId)!;
+  const subject = useMemo(() => {
+    const extras = customLessons.filter((l) => l.subject === subjectId);
+    if (extras.length === 0) return baseSubject;
+    const lessons = [...baseSubject.lessons, ...extras];
+    return {
+      ...baseSubject,
+      lessons,
+      professors: [...new Set(lessons.map((l) => l.professor))],
+      months: [...new Set(lessons.map((l) => l.month))],
+    };
+  }, [baseSubject, customLessons, subjectId]);
+
+  const customIds = useMemo(
+    () => new Map(customLessons.map((l) => [l.id, l.rowId])),
+    [customLessons],
+  );
 
   const frentes = useMemo(
     () => [...new Set(subject.lessons.map((l) => l.frente))].sort((a, b) => a.localeCompare(b, "pt-BR")),
@@ -98,12 +121,31 @@ function AulasPage() {
     }
   }
 
+  async function removeCustom(rowId: string) {
+    try {
+      await deleteCustomLesson(rowId);
+      queryClient.invalidateQueries({ queryKey: ["custom-lessons"] });
+      toast.success("Aula removida.");
+    } catch {
+      toast.error("Não foi possível remover a aula.");
+    }
+  }
+
+
   return (
     <>
-      <header>
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-sun-deep">Gravações</p>
-        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">Aulas</h1>
-        <p className="mt-2 text-sm text-ink-soft">{subject.tagline}</p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-sun-deep">Gravações</p>
+          <h1 className="mt-1 font-display text-3xl font-bold tracking-tight">Aulas</h1>
+          <p className="mt-2 text-sm text-ink-soft">{subject.tagline}</p>
+        </div>
+        <button
+          onClick={() => setAdding(true)}
+          className="flex items-center gap-1.5 rounded-md bg-sun px-3 py-2 text-sm font-semibold text-primary-foreground"
+        >
+          <Plus className="size-4" /> adicionar aula
+        </button>
       </header>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -244,12 +286,23 @@ function AulasPage() {
                   <FileText className="size-3.5" />{" "}
                   {summarizedSet.has(l.id) ? "ver resumo" : "resumo"}
                 </button>
+                {customIds.has(l.id) && (
+                  <button
+                    onClick={() => removeCustom(customIds.get(l.id)!)}
+                    aria-label="Remover aula adicionada"
+                    className="shrink-0 rounded-md border border-line p-1.5 text-ink-soft transition-colors hover:text-destructive"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                )}
 
               </li>
             );
           })}
         </ul>
       </section>
+
+      <AddLessonDialog open={adding} onOpenChange={setAdding} defaultSubject={subjectId} />
 
       <LessonSummaryDialog
         lesson={summaryLesson}
