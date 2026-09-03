@@ -243,6 +243,12 @@ function AulasPage() {
           })}
         </ul>
       </section>
+
+      <LessonSummaryDialog
+        lesson={summaryLesson}
+        onOpenChange={(open) => !open && setSummaryLesson(null)}
+      />
     </>
+
   );
 }
