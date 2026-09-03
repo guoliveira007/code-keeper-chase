@@ -45,6 +45,21 @@ function AulasPage() {
   const [frente, setFrente] = useState("todas");
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
+  const [summaryLesson, setSummaryLesson] = useState<
+    { id: string; title: string; subject?: string } | null
+  >(null);
+
+  const { data: summarized = [] } = useQuery({
+    queryKey: ["lesson-summaries"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("lesson_summaries").select("lesson_id");
+      if (error) throw error;
+      return (data ?? []).map((r) => r.lesson_id);
+    },
+  });
+  const summarizedSet = useMemo(() => new Set(summarized), [summarized]);
+
+
 
   const subject = subjects.find((s) => s.id === subjectId)!;
 
