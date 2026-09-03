@@ -46,8 +46,9 @@ function AulasPage() {
   const [month, setMonth] = useState("todos");
   const [query, setQuery] = useState("");
   const [summaryLesson, setSummaryLesson] = useState<
-    { id: string; title: string; subject?: string } | null
+    { id: string; title: string; subject?: string; frente?: string } | null
   >(null);
+
 
   const { data: summarized = [] } = useQuery({
     queryKey: ["lesson-summaries"],
@@ -226,8 +227,14 @@ function AulasPage() {
                 </button>
                 <button
                   onClick={() =>
-                    setSummaryLesson({ id: l.id, title: l.title, subject: subject.label })
+                    setSummaryLesson({
+                      id: l.id,
+                      title: l.title,
+                      subject: subject.label,
+                      frente: l.frente,
+                    })
                   }
+
                   className={
                     summarizedSet.has(l.id)
                       ? "flex shrink-0 items-center gap-1 rounded-md border border-sun px-2.5 py-1.5 font-mono text-[11px] text-sun-deep"

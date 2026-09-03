@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, Loader2, Upload } from "lucide-react";
+import { Download, FileText, Layers, Loader2, ListChecks, Upload } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { subjectIdForLesson } from "@/data/subject-map";
 import { generateLessonSummary } from "@/lib/lesson-summary.functions";
+import { generateFromLessonSummary } from "@/lib/lesson-cards.functions";
+import { fetchSubjects } from "@/lib/study";
 import { downloadSummaryPdf } from "@/lib/summary-pdf";
 
 type Props = {
-  lesson: { id: string; title: string; subject?: string } | null;
+  lesson: { id: string; title: string; subject?: string; frente?: string } | null;
   onOpenChange: (open: boolean) => void;
 };
+
 
 async function fetchSummary(lessonId: string) {
   const { data, error } = await supabase
@@ -38,10 +42,42 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
     enabled: !!lesson,
   });
 
+  const { data: dbSubjects = [] } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
+  const targetSubjectId = lesson?.subject
+    ? subjectIdForLesson(dbSubjects, lesson.subject, lesson.frente)
+    : null;
+
+  const genItems = useServerFn(generateFromLessonSummary);
+  const [pending, setPending] = useState<"flashcards" | "quiz" | null>(null);
+
+  async function generateItems(kind: "flashcards" | "quiz") {
+    if (!lesson || !targetSubjectId) {
+      toast.error("Não encontrei a frente desta aula nas suas matérias.");
+      return;
+    }
+    setPending(kind);
+    try {
+      const res = await genItems({
+        data: { lessonId: lesson.id, subjectId: targetSubjectId, kind, count: 25 },
+      });
+      toast.success(
+        kind === "flashcards"
+          ? `${res.created} flashcards criados na frente da aula.`
+          : `${res.created} questões criadas na frente da aula.`,
+      );
+      queryClient.invalidateQueries({ queryKey: [kind === "flashcards" ? "flashcards" : "questions"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível gerar agora.");
+    } finally {
+      setPending(null);
+    }
+  }
+
   useEffect(() => {
     setTranscript("");
     setEditing(false);
   }, [lesson?.id]);
+
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -178,6 +214,30 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
                 <Download className="size-3.5" /> baixar PDF
               </button>
               <button
+                disabled={pending !== null}
+                onClick={() => void generateItems("flashcards")}
+                className="flex items-center gap-1.5 rounded-md bg-sun px-3 py-1.5 font-mono text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {pending === "flashcards" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Layers className="size-3.5" />
+                )}
+                gerar 25 flashcards
+              </button>
+              <button
+                disabled={pending !== null}
+                onClick={() => void generateItems("quiz")}
+                className="flex items-center gap-1.5 rounded-md bg-sun px-3 py-1.5 font-mono text-[11px] font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                {pending === "quiz" ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <ListChecks className="size-3.5" />
+                )}
+                gerar 25 questões
+              </button>
+              <button
                 onClick={() => {
                   setTranscript(data.transcript ?? "");
                   setEditing(true);
@@ -186,6 +246,7 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
               >
                 enviar nova transcrição
               </button>
+
             </div>
           </div>
         )}
