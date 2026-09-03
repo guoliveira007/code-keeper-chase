@@ -138,9 +138,29 @@ export function LessonSummaryDialog({ lesson, onOpenChange }: Props) {
 
         {!showForm && data?.summary && (
           <div className="space-y-4">
-            <div className="prose prose-sm max-w-none text-ink prose-headings:font-display prose-headings:text-ink prose-strong:text-ink">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.summary}</ReactMarkdown>
+            <div className="space-y-3 text-sm leading-relaxed text-ink">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h2: (p) => (
+                    <h2 className="mt-5 font-display text-lg font-bold tracking-tight" {...p} />
+                  ),
+                  h3: (p) => <h3 className="mt-4 font-display text-base font-semibold" {...p} />,
+                  p: (p) => <p className="text-sm text-ink-soft" {...p} />,
+                  ul: (p) => <ul className="list-disc space-y-1 pl-5 text-sm text-ink-soft" {...p} />,
+                  ol: (p) => (
+                    <ol className="list-decimal space-y-1 pl-5 text-sm text-ink-soft" {...p} />
+                  ),
+                  strong: (p) => <strong className="font-semibold text-ink" {...p} />,
+                  code: (p) => (
+                    <code className="rounded bg-background px-1 py-0.5 font-mono text-[12px]" {...p} />
+                  ),
+                }}
+              >
+                {data.summary}
+              </ReactMarkdown>
             </div>
+
             <button
               onClick={() => {
                 setTranscript(data.transcript ?? "");
