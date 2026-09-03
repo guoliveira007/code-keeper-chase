@@ -1,20 +1,24 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, Loader2, Upload } from "lucide-react";
+import { Download, FileText, Layers, Loader2, ListChecks, Upload } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { subjectIdForLesson } from "@/data/subject-map";
 import { generateLessonSummary } from "@/lib/lesson-summary.functions";
+import { generateFromLessonSummary } from "@/lib/lesson-cards.functions";
+import { fetchSubjects } from "@/lib/study";
 import { downloadSummaryPdf } from "@/lib/summary-pdf";
 
 type Props = {
-  lesson: { id: string; title: string; subject?: string } | null;
+  lesson: { id: string; title: string; subject?: string; frente?: string } | null;
   onOpenChange: (open: boolean) => void;
 };
+
 
 async function fetchSummary(lessonId: string) {
   const { data, error } = await supabase
