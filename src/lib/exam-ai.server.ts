@@ -3,6 +3,7 @@ const MODEL = "google/gemini-3.7-flash";
 
 export type ContentPart =
   | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } }
   | { type: "file"; file: { filename: string; file_data: string } };
 
 export class AiError extends Error {
